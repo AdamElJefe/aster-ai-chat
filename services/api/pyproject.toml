@@ -1,0 +1,61 @@
+[project]
+name = "aster-api"
+version = "0.1.0"
+description = "Project Aster API and chat worker (M0/M1)"
+readme = "README.md"
+requires-python = ">=3.12"
+# Versions are pinned exactly in uv.lock (generated with `uv lock`); no speculative pins here.
+dependencies = [
+    "fastapi",
+    "uvicorn[standard]",
+    "asyncpg",
+    "redis",
+    "pydantic",
+    "cryptography",
+    "httpx",
+]
+
+[dependency-groups]
+dev = [
+    "pytest",
+    "pytest-asyncio",
+    "asgi-lifespan",
+    "ruff",
+    "mypy",
+    "pip-licenses",
+]
+
+[build-system]
+requires = ["uv_build>=0.8,<1"]
+build-backend = "uv_build"
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+asyncio_mode = "strict"
+asyncio_default_fixture_loop_scope = "session"
+asyncio_default_test_loop_scope = "session"
+markers = [
+    "acceptance: milestone acceptance criteria",
+    "e2e: spawns real API and worker processes",
+]
+addopts = "-ra"
+pythonpath = ["."]
+
+[tool.ruff]
+line-length = 120
+target-version = "py312"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "B", "UP", "S", "ASYNC", "RUF"]
+ignore = ["S101", "S608", "RUF001", "RUF003"]  # asserts in tests; SQL built only from fixed fragments
+
+[tool.ruff.lint.per-file-ignores]
+"src/aster_api/generation/prompt.py" = ["E501"]  # prompt text: wrapping would change the prompt
+"tests/**" = ["S105", "S106", "S603", "B017", "E501", "ASYNC240", "RUF012"]
+
+[tool.mypy]
+python_version = "3.12"
+strict = true
+ignore_missing_imports = true
+plugins = ["pydantic.mypy"]
+exclude = ["tests/"]

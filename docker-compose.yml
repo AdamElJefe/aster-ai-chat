@@ -1,0 +1,68 @@
+# Local development stack. `make dev` runs this. Not a production topology.
+name: aster
+
+services:
+  postgres:
+    image: postgres:16
+    environment:
+      POSTGRES_PASSWORD: postgres
+    ports: ["127.0.0.1:5432:5432"]
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+      - ./infra/postgres/init.sql:/docker-entrypoint-initdb.d/01-init.sql:ro
+      - ./infra/postgres/create_db.sh:/docker-entrypoint-initdb.d/02-create-db.sh:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 2s
+      retries: 30
+
+  redis:
+    image: redis:7
+    ports: ["127.0.0.1:6379:6379"]
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 2s
+      retries: 30
+
+  migrate:
+    build: ./services/api
+    env_file: .env
+    environment: &svc-env
+      DATABASE_URL: postgresql://aster_app:aster_app_dev@postgres:5432/aster
+      DATABASE_OWNER_URL: postgresql://aster_owner:aster_owner_dev@postgres:5432/aster
+      REDIS_URL: redis://redis:6379/0
+    command: ["sh", "-c", "python -m aster_api.migrate up && python -m aster_api.seed"]
+    depends_on:
+      postgres: { condition: service_healthy }
+      redis: { condition: service_healthy }
+
+  api:
+    build: ./services/api
+    env_file: .env
+    environment: *svc-env
+    ports: ["127.0.0.1:8000:8000"]
+    depends_on:
+      migrate: { condition: service_completed_successfully }
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/ready')"]
+      interval: 5s
+      retries: 20
+
+  worker:
+    build: ./services/api
+    env_file: .env
+    environment: *svc-env
+    command: ["python", "-m", "aster_api.generation.worker"]
+    depends_on:
+      migrate: { condition: service_completed_successfully }
+
+  web:
+    build: ./apps/web
+    environment:
+      API_ORIGIN: http://api:8000
+    ports: ["127.0.0.1:3000:3000"]
+    depends_on:
+      api: { condition: service_healthy }
+
+volumes:
+  pgdata:

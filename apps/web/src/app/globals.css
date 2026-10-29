@@ -1,0 +1,66 @@
+@import "tailwindcss";
+
+/* Theme tokens (spec B1: theme token system). Brand is G-BRAND; these are neutral placeholders. */
+@theme {
+  --color-bg: #0f0d14;
+  --color-surface: #18151f;
+  --color-surface-2: #221e2b;
+  --color-line: #332d3f;
+  --color-ink: #f1edf7;
+  --color-ink-muted: #a69fb4;
+  --color-accent: #e58fb8;
+  --color-accent-ink: #1a0f15;
+  --color-ok: #7fd1a8;
+  --color-warn: #f0c36b;
+  --color-danger: #f08a8a;
+  --font-sans: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  --radius-card: 14px;
+}
+
+html {
+  color-scheme: dark;
+}
+body {
+  background: var(--color-bg);
+  color: var(--color-ink);
+  font-family: var(--font-sans);
+}
+
+/* Visible keyboard focus everywhere. */
+:focus-visible {
+  outline: 2px solid var(--color-accent);
+  outline-offset: 2px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  * {
+    animation: none !important;
+    transition: none !important;
+  }
+}
+
+/* Component classes as Tailwind v4 utilities (so they can compose with @apply and variants). */
+@utility btn {
+  @apply inline-flex items-center justify-center gap-2 rounded-lg px-4 py-2 text-sm font-medium transition-colors disabled:cursor-not-allowed disabled:opacity-50;
+}
+@utility btn-primary {
+  @apply btn bg-accent text-accent-ink hover:brightness-110;
+}
+@utility btn-ghost {
+  @apply btn border border-line text-ink hover:bg-surface-2;
+}
+@utility btn-danger {
+  @apply btn border border-danger/60 text-danger hover:bg-danger/10;
+}
+@utility card {
+  @apply rounded-[var(--radius-card)] border border-line bg-surface;
+}
+@utility field {
+  @apply w-full rounded-lg border border-line bg-surface-2 px-3 py-2 text-sm text-ink placeholder:text-ink-muted;
+}
+@utility label {
+  @apply mb-1 block text-sm font-medium text-ink;
+}
+@utility hint {
+  @apply mt-1 text-xs text-ink-muted;
+}
