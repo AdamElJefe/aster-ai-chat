@@ -1,0 +1,18 @@
+title = "aster-ai-chat secret scanning"
+
+[extend]
+useDefault = true
+
+# Files below contain only development/test placeholder credentials (local Postgres passwords,
+# fixed test keys). Real secrets come from the environment and are never committed.
+[allowlist]
+description = "Development and test fixtures"
+paths = [
+  '''services/api/tests/.*''',
+  '''infra/postgres/.*''',
+  '''\.env\.example''',
+  '''docker-compose\.yml''',
+  '''services/api/src/aster_api/core/config\.py''',
+  '''scripts/export_openapi\.py''',
+  '''\.github/workflows/ci\.yml''',
+]
